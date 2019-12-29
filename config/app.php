@@ -229,4 +229,8 @@ return [
 
     ],
 
+    /**
+     * Time To Live for values
+     */
+    'ttl' => env('TTL_MINUTES', 5),
 ];
