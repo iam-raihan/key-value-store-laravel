@@ -21,14 +21,11 @@ class EventServiceProvider extends ServiceProvider
     ];
 
     /**
-     * Register any events for your application.
+     * The subscriber classes to register.
      *
-     * @return void
+     * @var array
      */
-    public function boot()
-    {
-        parent::boot();
-
-        //
-    }
+    protected $subscribe = [
+        'App\Listeners\ValueEventsSubscriber',
+    ];
 }
