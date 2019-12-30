@@ -4,20 +4,33 @@ namespace App\Listeners;
 
 use App\Jobs\UpdateCacheJob;
 use App\Jobs\UpdateTTLJob;
+use App\Jobs\DeleteExpiredValuesJob;
 
 class ValueEventsSubscriber
 {
     public function onValuesReadOperation($event) {
-        UpdateCacheJob::dispatchNow($event->getValues());
+        UpdateCacheJob::dispatchNow($event->getValues()); // dispatches synchronously
 
         UpdateTTLJob::dispatch(
             $event->getKeys(),
             $event->getExpiresAt()
-        ); // time consuming query queued to improve performance
+        ); // time consuming query added to queue to improve performance
+
+        $this->dispatchDeleteExpiredValuesJob($event);
+
     }
 
     public function onValuesWriteOperation($event) {
         UpdateCacheJob::dispatchNow($event->getValues());
+
+        $this->dispatchDeleteExpiredValuesJob($event);
+    }
+
+    private function dispatchDeleteExpiredValuesJob($event)
+    {
+        $ttl = config('app.ttl');
+        DeleteExpiredValuesJob::dispatch($event->getKeys())
+            ->delay(now()->addSeconds($ttl * 60 + 3));
     }
 
     /**

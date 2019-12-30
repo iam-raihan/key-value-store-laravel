@@ -9,22 +9,20 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class UpdateTTLJob implements ShouldQueue
+class DeleteExpiredValuesJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $keys;
-    protected $expiresAt;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(array $keys, $expiresAt)
+    public function __construct(array $keys)
     {
         $this->keys = $keys;
-        $this->expiresAt = $expiresAt;
     }
 
     /**
@@ -35,7 +33,8 @@ class UpdateTTLJob implements ShouldQueue
     public function handle()
     {
         Value::whereIn('key', $this->keys)
+                ->where('expires_at', '<=', now())
                 ->orderBy('key')
-                ->update(['expires_at' => $this->expiresAt]);
+                ->delete();
     }
 }

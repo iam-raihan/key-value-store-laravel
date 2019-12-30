@@ -24,4 +24,9 @@ class ValuesWriteOperation
     {
         return $this->values;
     }
+
+    public function getKeys()
+    {
+        return array_column($this->values, 'key');
+    }
 }
