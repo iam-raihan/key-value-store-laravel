@@ -3,22 +3,37 @@
 namespace App\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class ValuesReadOperation
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
 
     protected $values;
+    protected $expiresAt;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(array $values)
+    public function __construct(array $values, $expiresAt)
     {
         $this->values = $values;
+        $this->expiresAt = $expiresAt;
     }
 
+    public function getValues()
+    {
+        return $this->values;
+    }
+
+    public function getKeys()
+    {
+        return array_column($this->values, 'key');
+    }
+
+    public function getExpiresAt()
+    {
+        return $this->expiresAt;
+    }
 }

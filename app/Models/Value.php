@@ -14,8 +14,8 @@ class Value extends Model
         'expires_at',
     ];
 
-    protected $visible = [
-        'key', 'value'
+    protected $hidden = [
+        'id'
     ];
 
     public $timestamps = false;

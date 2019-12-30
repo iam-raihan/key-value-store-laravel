@@ -3,11 +3,10 @@
 namespace App\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class ValuesWriteOperation
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
 
     protected $values;
 
@@ -19,5 +18,10 @@ class ValuesWriteOperation
     public function __construct(array $values)
     {
         $this->values = $values;
+    }
+
+    public function getValues()
+    {
+        return $this->values;
     }
 }

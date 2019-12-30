@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::prefix('values')->group(function() {
+    Route::get('/', 'ValueController@index');
+    Route::post('/', 'ValueController@store');
+    Route::patch('/', 'ValueController@update');
 });

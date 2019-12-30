@@ -2,14 +2,22 @@
 
 namespace App\Listeners;
 
+use App\Jobs\UpdateCacheJob;
+use App\Jobs\UpdateTTLJob;
+
 class ValueEventsSubscriber
 {
-    public function onValueReadOperation($event) {
+    public function onValuesReadOperation($event) {
+        UpdateCacheJob::dispatchNow($event->getValues());
 
+        UpdateTTLJob::dispatch(
+            $event->getKeys(),
+            $event->getExpiresAt()
+        ); // time consuming query queued to improve performance
     }
 
-    public function onValueWriteOperation($event) {
-
+    public function onValuesWriteOperation($event) {
+        UpdateCacheJob::dispatchNow($event->getValues());
     }
 
     /**
@@ -21,12 +29,12 @@ class ValueEventsSubscriber
     {
         $events->listen(
             'App\Events\ValuesReadOperation',
-            'App\Listeners\ValueEventsSubscriber@onValueReadOperation'
+            'App\Listeners\ValueEventsSubscriber@onValuesReadOperation'
         );
 
         $events->listen(
             'App\Events\ValuesWriteOperation',
-            'App\Listeners\ValueEventsSubscriber@onValueWriteOperation'
+            'App\Listeners\ValueEventsSubscriber@onValuesWriteOperation'
         );
     }
 }
