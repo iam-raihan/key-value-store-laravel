@@ -32,9 +32,11 @@ class DeleteExpiredValuesJob implements ShouldQueue
      */
     public function handle()
     {
-        Value::whereIn('key', $this->keys)
-                ->where('expires_at', '<=', now())
-                ->orderBy('key')
-                ->delete();
+        collect($this->keys)->chunk(10000)->each(function($set) {
+            Value::whereIn('key', $set)
+                    ->where('expires_at', '<=', now())
+                    ->orderBy('key')
+                    ->delete();
+        });
     }
 }

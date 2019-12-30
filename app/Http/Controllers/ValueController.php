@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Value;
+use App\Helpers\ApiResponseTrait;
 use App\Http\Requests\StoreValuesRequest;
 
 use App\Events\ValuesWriteOperation;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 class ValueController extends Controller
 {
+    use ApiResponseTrait;
+
     /**
      * check for values in redis
      * if nothing found, get from db
@@ -30,13 +33,16 @@ class ValueController extends Controller
         if ($data->isEmpty())
             $data = $this->loadFromDB($keys);
 
+        if ($data->isEmpty())
+            return self::success("Success", null);
+
         event(new ValuesReadOperation(
             $data->toArray(),
             $this->getExpiresAt()
         ));
 
         $values = $data->pluck('value', 'key');
-        return $values;
+        return self::success("Success", $values);
     }
 
     /**
@@ -47,11 +53,17 @@ class ValueController extends Controller
     {
         $data = $request->all();
 
-        Value::insertOrIgnore($data);
+        if(empty($data))
+            return self::badData('Nothing to store');
+
+        $count = Value::insertOrIgnore($data);
+
+        if($count === 0)
+            return self::badData('Nothing to store');
 
         event(new ValuesWriteOperation($data));
 
-        return response()->json();
+        return self::created();
     }
 
     /**
@@ -65,6 +77,9 @@ class ValueController extends Controller
         $expiresAt = $this->getExpiresAt();
         $values = Value::whereIn('key', array_keys($data))->get();
 
+        if($values->isEmpty())
+            return self::badData('Nothing to update');
+
         DB::transaction(function () use ($values, $data, $expiresAt) {
             foreach($values as $value) {
                 $value->value = $data[$value->key];
@@ -75,7 +90,7 @@ class ValueController extends Controller
 
         event(new ValuesWriteOperation($values->toArray()));
 
-        return response()->json();
+        return self::success();
     }
 
     private function loadFromDB($keys)

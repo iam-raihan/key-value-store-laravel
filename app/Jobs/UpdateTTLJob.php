@@ -34,8 +34,11 @@ class UpdateTTLJob implements ShouldQueue
      */
     public function handle()
     {
-        Value::whereIn('key', $this->keys)
-                ->orderBy('key')
-                ->update(['expires_at' => $this->expiresAt]);
+        $expiresAt = $this->expiresAt;
+        collect($this->keys)->chunk(10000)->each(function($set) use ($expiresAt) {
+            Value::whereIn('key', $set)
+                    ->orderBy('key')
+                    ->update(['expires_at' => $expiresAt]);
+        });
     }
 }

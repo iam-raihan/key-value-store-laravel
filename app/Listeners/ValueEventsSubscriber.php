@@ -30,7 +30,7 @@ class ValueEventsSubscriber
     {
         $ttl = config('app.ttl');
         DeleteExpiredValuesJob::dispatch($event->getKeys())
-            ->delay(now()->addSeconds($ttl * 60 + 3));
+            ->delay(now()->addSeconds($ttl * 60 + 5));
     }
 
     /**
