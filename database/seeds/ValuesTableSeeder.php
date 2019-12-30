@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Value;
+use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 
 class ValuesTableSeeder extends Seeder
@@ -12,6 +13,41 @@ class ValuesTableSeeder extends Seeder
      */
     public function run()
     {
-        factory(Value::class, 50)->create();
+        $seedRowCount = 100000;
+
+        // factory(Value::class, $seedRowCount)->create(); // Super Slow
+
+        // Note: 'LOAD DATA INFILE' can be used to insert millions of data, if needed
+
+        $count = 0;
+        $faker = Faker::create();
+        $expiresAt = now()->addMinutes($faker->biasedNumberBetween(0, 5));
+
+        $columns = implode("`, `", \Schema::getColumnListing('values'));
+        $values = [];
+
+        echo ">>>>>  Seeding $seedRowCount rows";
+
+        DB::unprepared("SET autocommit=0; SET unique_checks=0; SET foreign_key_checks=0;"); // if ENGINE=InnoDB
+        DB::statement("ALTER TABLE `values` DISABLE KEYS;");
+
+        foreach(range(1, $seedRowCount) as $id) {
+            $count++;
+            $values[] = "($id, '$id', '$faker->emoji', '$expiresAt')";
+
+            if ($count == 10000) {
+                $values = implode(", ", $values);
+                \DB::insert("INSERT INTO `values` (`$columns`) VALUES $values");
+                echo '.';
+                $count = 0;
+                $values = [];
+                $expiresAt = now()->addMinutes($faker->biasedNumberBetween(0, 5));
+            }
+        }
+
+        DB::unprepared("COMMIT; SET unique_checks=1; SET foreign_key_checks=1;");
+        DB::statement("ALTER TABLE `values` ENABLE KEYS;");
+
+        echo 'Complete  <<<<<'.PHP_EOL;
     }
 }
