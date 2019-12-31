@@ -34,7 +34,7 @@ class ValueController extends Controller
             $data = $this->loadFromDB($keys);
 
         if ($data->isEmpty())
-            return self::success("Success", null);
+            return self::success("Success", []);
 
         event(new ValuesReadOperation(
             $data->toArray(),
@@ -101,11 +101,14 @@ class ValueController extends Controller
          * In this scenario, I don't need the added benefits of Eloquent.
          * So I used DB Facade for a little performance boost.
          */
-        if(is_null($keys)) {
+        if(is_null($keys))
+        {
             $data = DB::table('values')
                         ->select('id', 'key', 'value')
                         ->get();
-        } else {
+        }
+        else
+        {
             $data = DB::table('values')
                         ->select('id', 'key', 'value')
                         ->whereIn('key', $keys)
@@ -117,9 +120,11 @@ class ValueController extends Controller
 
     private function loadFromCache($keys)
     {
-        if(is_null($keys)) {
+        if(is_null($keys))
+        {
             $keys = $this->getAllCacheKeys();
-            if (empty($keys)) {
+            if (empty($keys))
+            {
                 return collect(); // cache has no records
             }
         }
@@ -129,17 +134,16 @@ class ValueController extends Controller
         }, $keys);
 
         $data = Redis::mget($cacheKeys);
-        if (empty($data)) {
-            return collect(); // cache may have records but nothing with these keys
-        }
-
-        // process cache data
         $values = collect();
-        foreach(array_combine($keys, $data) as $key => $value) {
-            $values->push([
-                'key' => $key,
-                'value' => $value
-            ]);
+        foreach(array_combine($keys, $data) as $key => $value)
+        {
+            if (!is_null($value))
+            {
+                $values->push([
+                    'key' => $key,
+                    'value' => $value
+                ]);
+            }
         }
 
         return $values;

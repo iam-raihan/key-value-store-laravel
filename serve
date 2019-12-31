@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ ! -d vendor ] ; then # fresh install
+
+    docker-compose up -d --build
+    docker exec -it laravel_app composer install
+
+    docker exec -it laravel_app php -r "copy('.env.example', '.env');" \
+    && docker exec -it laravel_app php artisan key:generate --ansi
+
+    docker exec -it laravel_app php artisan telescope:publish
+    docker exec -it laravel_app php artisan migrate --seed
+
+else
+
+    docker-compose up -d
+
+fi
+
+docker exec -it laravel_app ./vendor/bin/phpunit # this will reset database seed
+
+echo listening at port 8000
+
+docker exec -it laravel_app php artisan queue:work --delay=3 --tries=3 # TODO - configure supervisor

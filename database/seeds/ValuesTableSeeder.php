@@ -23,7 +23,7 @@ class ValuesTableSeeder extends Seeder
         $faker = Faker::create();
         $expiresAt = now()->addMinutes($faker->biasedNumberBetween(0, 5));
 
-        $columns = implode("`, `", \Schema::getColumnListing('values'));
+        $columns = "`id`, `key`, `value`, `expires_at`";
         $values = [];
 
         echo ">>>>>  Seeding $seedRowCount rows";
@@ -33,11 +33,12 @@ class ValuesTableSeeder extends Seeder
 
         foreach(range(1, $seedRowCount) as $id) {
             $count++;
-            $values[] = "($id, '$id', '$faker->emoji', '$expiresAt')";
+            $value = $faker->sentence($nbWords = 4, $variableNbWords = true);
+            $values[] = "($id, '$id', '$value', '$expiresAt')";
 
             if ($count == 10000) {
                 $values = implode(", ", $values);
-                \DB::insert("INSERT INTO `values` (`$columns`) VALUES $values");
+                \DB::insert("INSERT INTO `values` ($columns) VALUES $values");
                 echo '.';
                 $count = 0;
                 $values = [];
