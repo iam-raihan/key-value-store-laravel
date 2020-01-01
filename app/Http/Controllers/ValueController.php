@@ -17,6 +17,12 @@ class ValueController extends Controller
 {
     use ApiResponseTrait;
 
+
+    /**
+     * Please check readme.md
+     */
+
+
     /**
      * check for values in redis
      * if nothing found, get from db
@@ -46,7 +52,7 @@ class ValueController extends Controller
     }
 
     /**
-     * get processed values from Custom Requet
+     * get processed values from Custom Request
      * bulk insert, ignore duplicates
      */
     public function store(StoreValuesRequest $request) // payload already processed
